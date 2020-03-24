@@ -1,2 +1,2 @@
-# blinker-curses
-Demo for the Blech programming language
+# blinker
+Demo for the Blech programming language.
