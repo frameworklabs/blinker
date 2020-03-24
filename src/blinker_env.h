@@ -1,10 +1,5 @@
-//
 //  blinker_env.h
 //  blinker
-//
-//  Created by Marc Schlichte on 21.03.20.
-//  Copyright © 2020 Framework Labs. All rights reserved.
-//
 
 #ifndef BLINKER_ENV_H
 #define BLINKER_ENV_H
@@ -16,25 +11,25 @@
 typedef struct blinker_env_s *blinker_env_h;
 
 typedef enum {
-	blinker_env_lever_pos_up = 0,
-	blinker_env_lever_pos_center = 1,
-	blinker_env_lever_pos_down = 2,
+    blinker_env_lever_pos_up = 0,
+    blinker_env_lever_pos_center = 1,
+    blinker_env_lever_pos_down = 2,
 } blinker_env_lever_pos_t;
 
 typedef struct {
-	int blinker_left_on;
-	int blinker_right_on;
-	blinker_env_lever_pos_t blinker_lever_pos;
+    int blinker_left_on;
+    int blinker_right_on;
+    blinker_env_lever_pos_t blinker_lever_pos;
 } blinker_env_actuator_state_t;
 
 typedef enum {
-	blinker_env_sensor_state_nothing,
-	blinker_env_sensor_state_quit,
-	blinker_env_sensor_state_blinker_lever_up,
-	blinker_env_sensor_state_blinker_lever_down,
-	blinker_env_sensor_state_warn_toggle,
-	blinker_env_sensor_state_rotate_counter_clock,
-	blinker_env_sensor_state_rotate_clock
+    blinker_env_sensor_state_nothing,
+    blinker_env_sensor_state_quit,
+    blinker_env_sensor_state_blinker_lever_up,
+    blinker_env_sensor_state_blinker_lever_down,
+    blinker_env_sensor_state_warn_toggle,
+    blinker_env_sensor_state_rotate_counter_clock,
+    blinker_env_sensor_state_rotate_clock
 } blinker_env_sensor_state_t;
 
 /* Construction */
