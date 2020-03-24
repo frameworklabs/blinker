@@ -1,0 +1,137 @@
+const BlinkerLeverMoveNone: int32 = 0
+const BlinkerLeverMoveUp: int32 = 1
+const BlinkerLeverMoveDown: int32 = 2
+
+const BlinkerLeverPosUp: int32 = 0
+const BlinkerLeverPosCenter: int32 = 1
+const BlinkerLeverPosDown: int32 = 2
+
+struct Ratio
+	let nom: nat8
+	let denom: nat8
+end
+
+const turnRatio: Ratio = { nom = 4, denom = 5}
+const warnRatio: Ratio = { nom = 6, denom = 7}
+
+function cap(val: int32, min: int32, max: int32) returns int32
+	if val < min then
+		return min
+	elseif val > max then
+		return max
+	else
+		return val
+	end
+end
+
+// ticks must be > 0
+activity wait(ticks: nat8)
+	var counter = ticks
+	repeat
+		counter = counter - 1
+		await true
+	until counter == 0 end
+end
+
+activity moveBlinkerLever(blinkerLeverMove: int32, prevBlinkerLeverPos: int32)(blinkerLeverPos: int32)
+	repeat
+		if blinkerLeverMove == BlinkerLeverMoveUp then
+			blinkerLeverPos = cap(prevBlinkerLeverPos - 1, BlinkerLeverPosUp, BlinkerLeverPosDown)
+		elseif blinkerLeverMove == BlinkerLeverMoveDown then
+			blinkerLeverPos = cap(prevBlinkerLeverPos + 1, BlinkerLeverPosUp, BlinkerLeverPosDown)
+		else
+			blinkerLeverPos = prevBlinkerLeverPos
+		end
+		await true
+	end
+end
+
+activity updateBlinkerLeverFromRotation(rotation: int32, movedPos: int32)(blinkerLeverPos: int32)
+	var rotationSum: int32
+	const rotationThreshold: int32 = 3
+	repeat
+		if movedPos != BlinkerLeverPosCenter then
+			if rotation > 0 then
+				if rotationSum < 0 then
+					rotationSum = rotation
+				else
+					rotationSum = rotationSum + rotation
+				end
+			elseif rotation < 0 then
+				if rotationSum > 0 then
+					rotationSum = rotation
+				else
+					rotationSum = rotationSum + rotation
+				end
+			end
+		
+			if rotationSum >= rotationThreshold and movedPos == BlinkerLeverPosUp then
+				blinkerLeverPos = BlinkerLeverPosCenter
+				rotationSum = 0
+			elseif rotationSum <= -rotationThreshold and movedPos == BlinkerLeverPosDown then
+				blinkerLeverPos = BlinkerLeverPosCenter
+				rotationSum = 0
+			else
+				blinkerLeverPos = movedPos
+			end
+		else
+			blinkerLeverPos = movedPos
+		end
+		await true
+	end
+end
+
+activity blink(ratio: Ratio)(blinker: bool)
+	repeat
+		blinker = true
+		run wait(ratio.nom)
+		blinker = false
+		run wait(ratio.denom)
+	end
+end
+
+activity blinkWhileInPos(pos: int32, targetPos: int32)(blinker: bool)
+	repeat
+		await pos == targetPos
+		when pos != targetPos abort
+			run blink(turnRatio)(blinker)
+		end
+		blinker = false
+	end
+end
+
+@[EntryPoint]
+activity main(blinkerLeverMove: int32, warningPushed: bool, rotation: int32)
+             (leftBlinker: bool, rightBlinker: bool, blinkerLeverPos: int32)
+	var movedPos: int32
+	var localBlinkerLeverPos = blinkerLeverPos
+	cobegin
+		run moveBlinkerLever(blinkerLeverMove, prev localBlinkerLeverPos)(movedPos)
+	with
+		run updateBlinkerLeverFromRotation(rotation, movedPos)(localBlinkerLeverPos)
+	with
+		repeat
+			blinkerLeverPos = localBlinkerLeverPos
+			await true
+		end
+	with
+		repeat
+			when warningPushed abort
+				cobegin
+					run blinkWhileInPos(blinkerLeverPos, BlinkerLeverPosUp)(leftBlinker)
+				with
+					run blinkWhileInPos(blinkerLeverPos, BlinkerLeverPosDown)(rightBlinker)
+				end
+			end
+			when warningPushed abort
+				cobegin
+					run blink(warnRatio)(leftBlinker)
+				with
+					run blink(warnRatio)(rightBlinker)
+				end
+			end
+			leftBlinker = false
+			rightBlinker = false
+		end
+	end
+end
