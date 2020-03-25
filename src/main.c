@@ -12,7 +12,7 @@
 /* Constants */
 
 static const blc_int32 rotation_increment = 1; /* 1 degree */
-static const __useconds_t update_frequency = 100000; /* 10 Hz */
+static const useconds_t update_frequency = 100000; /* 10 Hz */
 
 /* Main */
 
@@ -29,10 +29,11 @@ int main(int argc, const char * argv[])
     actuator_state.blinker_left_on = 0;
     actuator_state.blinker_right_on = 0;
     actuator_state.blinker_lever_pos = blinker_env_lever_pos_center;
+    actuator_state.wheel_pos = 0;
 
     /* Initialize blech. */
     blc_blech_blinker_init();
-
+     
     /* Sense, control, act loop */
     while (1) {
 
@@ -65,14 +66,19 @@ int main(int argc, const char * argv[])
         }
 
         /* Run control reaction. */
+        blc_int32 blinker_lever_pos = actuator_state.blinker_lever_pos;
+        
         blc_blech_blinker_tick(blinker_lever_move,
                                blinker_warning_pushed,
                                rotation,
                                &actuator_state.blinker_left_on,
                                &actuator_state.blinker_right_on,
-                               (blc_int32*)(&actuator_state.blinker_lever_pos));
+                               &blinker_lever_pos);
 
         /* Act on environment. */
+        actuator_state.blinker_lever_pos = blinker_lever_pos;
+        actuator_state.wheel_pos += rotation;
+        
         blinker_env_actuate(env, &actuator_state);
 
         /* Wait for next tick.*/
