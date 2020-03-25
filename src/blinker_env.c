@@ -13,14 +13,26 @@ struct blinker_env_s {
 
 blinker_env_h blinker_env_make()
 {
+    WINDOW *win = initscr();
+
+    if (!has_colors()) {
+        puts("This only works on color terminals!");
+        endwin();
+        return NULL;
+    }
+
     blinker_env_h env = malloc(sizeof(struct blinker_env_s));
-    
-    env->win = initscr();
-    
+
+    env->win = win;
+
     cbreak();
     noecho();
+    curs_set(0);
     keypad(env->win, true);
     nodelay(env->win, true);
+
+    start_color();
+    init_pair(1, COLOR_BLACK, COLOR_YELLOW);
     
     return env;
 }
@@ -38,49 +50,56 @@ void blinker_env_destroy(blinker_env_h self)
 
 static void fill(int col, int row, int numCols, int numRows)
 {
+    attron(COLOR_PAIR(1));
     for (int j = 0; j < numRows; ++j) {
-        for (int i = 0; i < numCols; ++i) {
-            mvaddch(row + j, col + i, 'X');
-        }
+        mvhline(row + j, col, ' ', numCols);
     }
+    attroff(COLOR_PAIR(1));
 }
 
 void blinker_env_actuate(blinker_env_h self, blinker_env_actuator_state_t *state)
 {
     assert(self);
-    
+
+    /* Get latest window dimensions. */
     int rows, cols;
     getmaxyx(self->win, rows, cols);
     int halveRows = rows / 2;
     int halveCols = cols / 2;
-    
+
+    /* Start blank. */
     clear();
-    
+
+    /* Draw blinker lights. */
     if (state->blinker_left_on) {
         fill(0, 0, halveCols - 1, halveRows);
     }
     if (state->blinker_right_on) {
         fill(halveCols + 1, 0, halveCols - 1, halveRows);
     }
-    
-    move(rows - 2, 0);
+
+    /* Draw lever. */
     switch (state->blinker_lever_pos) {
         case blinker_env_lever_pos_up:
-            addch('^');
+            mvhline(halveRows + 2, 0, '^', halveCols);
             break;
-            
-        case blinker_env_lever_pos_down:
-            addch('v');
-            break;
-            
+
         case blinker_env_lever_pos_center:
-            addch('o');
+            mvhline(halveRows + 4, 0, '-', halveCols);
             break;
-            
-        default:
-            addstr("oh no");
+
+        case blinker_env_lever_pos_down:
+            mvhline(halveRows + 6, 0, 'v', halveCols);
+            break;
     }
-    
+
+    /* Draw help. */
+    mvaddstr(rows - 4, 0, "Move blinker lever up or down by arrow keys");
+    mvaddstr(rows - 3, 0, "Turn wheel left or right by arrow keys");
+    mvaddstr(rows - 2, 0, "Toggle warning blinker by pressing 'w'");
+    mvaddstr(rows - 1, 0, "Quit demo by pressing 'q'");
+
+    /* Display all. */
     refresh();
 }
 
