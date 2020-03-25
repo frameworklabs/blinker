@@ -20,6 +20,7 @@ typedef struct {
     int blinker_left_on;
     int blinker_right_on;
     blinker_env_lever_pos_t blinker_lever_pos;
+    int wheel_pos;
 } blinker_env_actuator_state_t;
 
 typedef enum {
