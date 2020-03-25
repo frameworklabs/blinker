@@ -10,13 +10,13 @@ BLECH_INCLUDE_PATH=$(dirname `which blechc`)/../../../../../include
 # BUILD
 [ -d build ] || mkdir build
 
-pushd build
+cd build
 blechc -sp ../src ../src/blinker.blc
-popd
+cd ..
 
-pushd src
+cd src
 cc -I .  -I ../build -I $BLECH_INCLUDE_PATH main.c blinker_env.c -lcurses -o ../build/blinker
-popd
+cd ..
 
 # RUN
 build/blinker
