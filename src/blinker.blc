@@ -126,7 +126,7 @@ end
 
 @[EntryPoint]
 activity main(blinkerLeverMove: int32, warningPushed: bool, rotation: int32)
-             (leftBlinker: bool, rightBlinker: bool, blinkerLeverPos: int32)
+             (leftBlinker: bool, rightBlinker: bool, warningIndicator: bool, blinkerLeverPos: int32)
     var movedBlinkerLeverPos: int32
     var localBlinkerLeverPos = blinkerLeverPos
     
@@ -150,13 +150,18 @@ activity main(blinkerLeverMove: int32, warningPushed: bool, rotation: int32)
             end
             when warningPushed abort
                 cobegin
-                    run blink(BLINKING_RATIO_WARNING)(leftBlinker)
+                    run blink(BLINKING_RATIO_WARNING)(warningIndicator)
                 with
-                    run blink(BLINKING_RATIO_WARNING)(rightBlinker)
+                    repeat
+                        leftBlinker = warningIndicator
+                        rightBlinker = warningIndicator
+                        await true
+                    end
                 end
             end
             leftBlinker = false
             rightBlinker = false
+            warningIndicator = false
         end
     end
 end
