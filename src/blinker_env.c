@@ -94,7 +94,7 @@ void blinker_env_actuate(blinker_env_h self, blinker_env_actuator_state_t *state
     }
 
     /* Draw wheel. */
-    mvaddch(halveRows + 8, halveCols - state->wheel_pos, 'O');
+    mvaddch(halveRows + 8, halveCols + state->wheel_pos, 'O');
     
     /* Draw help. */
     mvaddstr(rows - 4, 0, "Move blinker lever up or down by arrow keys");
@@ -133,3 +133,4 @@ blinker_env_sensor_state_t blinker_env_sense(blinker_env_h self)
             return blinker_env_sensor_state_nothing;
     }
 }
+

@@ -21,6 +21,8 @@ const BLINKER_LEVER_POS_UP: int32 = 0
 const BLINKER_LEVER_POS_CENTER: int32 = 1
 const BLINKER_LEVER_POS_DOWN: int32 = 2
 
+const ROTATION_INCREMENT: int32 = 1
+
 const ROTATION_THRESHOLD: int32 = 3
 
 // Helpers
@@ -60,34 +62,33 @@ activity moveBlinkerLever(blinkerLeverMove: int32, prevBlinkerLeverPos: int32)(b
     end
 end
 
-function updateRotationSum(rotationSum: int32, rotation: int32) returns int32
+function updateRotationSum(rotation: int32)(rotationSum: int32)
     if rotation > 0 then
         if rotationSum < 0 then
-            return rotation
+            rotationSum = rotation
         else
-            return rotationSum + rotation
+            rotationSum = rotationSum + rotation
         end
     elseif rotation < 0 then
         if rotationSum > 0 then
-            return rotation
+            rotationSum = rotation
         else
-            return rotationSum + rotation
+            rotationSum = rotationSum + rotation
         end
-    else
-        return rotationSum
     end
 end
+
 
 activity updateBlinkerLeverFromRotation(rotation: int32, movedBlinkerLeverPos: int32)(blinkerLeverPos: int32)
     var rotationSum: int32
     repeat
         if movedBlinkerLeverPos != BLINKER_LEVER_POS_CENTER then
-            rotationSum = updateRotationSum(rotationSum, rotation)
+            updateRotationSum(rotation)(rotationSum)
 
-            if rotationSum >= ROTATION_THRESHOLD and movedBlinkerLeverPos == BLINKER_LEVER_POS_UP then
+            if rotationSum <= -ROTATION_THRESHOLD and movedBlinkerLeverPos == BLINKER_LEVER_POS_UP then
                 blinkerLeverPos = BLINKER_LEVER_POS_CENTER
                 rotationSum = 0
-            elseif rotationSum <= -ROTATION_THRESHOLD and movedBlinkerLeverPos == BLINKER_LEVER_POS_DOWN then
+            elseif rotationSum >= ROTATION_THRESHOLD and movedBlinkerLeverPos == BLINKER_LEVER_POS_DOWN then
                 blinkerLeverPos = BLINKER_LEVER_POS_CENTER
                 rotationSum = 0
             else
@@ -100,6 +101,27 @@ activity updateBlinkerLeverFromRotation(rotation: int32, movedBlinkerLeverPos: i
         await true
     end
 end
+
+
+singleton activity monitorBlinkerLever(rotation: int32)(blinkerLeverPos: int32)
+    @[CInput (binding="sensor_input.blinker_lever_move", header="blinker_env.h")]
+    extern let blinkerLeverMove: int32         
+    
+    var movedBlinkerLeverPos: int32
+    var localBlinkerLeverPos = blinkerLeverPos
+    
+    cobegin
+        run moveBlinkerLever(blinkerLeverMove, prev localBlinkerLeverPos)(movedBlinkerLeverPos)
+    with
+        run updateBlinkerLeverFromRotation(rotation, movedBlinkerLeverPos)(localBlinkerLeverPos)
+    with
+        repeat
+            blinkerLeverPos = localBlinkerLeverPos
+            await true
+        end
+    end
+end
+
 
 // Blinking
 
@@ -122,41 +144,63 @@ activity blinkWhileInPos(pos: int32, targetPos: int32)(blinker: bool)
     end
 end
 
+
+singleton activity controlBlinkers(warningPushed: bool, blinkerLeverPos: int32)
+    @[COutput (binding="actuator_state.blinker_left_on", header="blinker_env.h")]
+    extern var leftBlinker: bool         
+    @[COutput (binding="actuator_state.blinker_right_on", header="blinker_env.h")]
+    extern var rightBlinker: bool         
+    
+    repeat
+        when warningPushed abort
+            cobegin
+                run blinkWhileInPos(blinkerLeverPos, BLINKER_LEVER_POS_UP)(rightBlinker)
+            with
+                run blinkWhileInPos(blinkerLeverPos, BLINKER_LEVER_POS_DOWN)(leftBlinker)
+            end
+        end
+        when warningPushed abort
+            cobegin
+                run blink(BLINKING_RATIO_WARNING)(leftBlinker)
+            with
+                run blink(BLINKING_RATIO_WARNING)(rightBlinker)
+            end
+        end
+        leftBlinker = false
+        rightBlinker = false
+    end
+end
+
+// Rotation monitoring
+
+singleton activity monitorWheelPos()(rotation: int32)
+    @[CInput (binding="sensor_input.rotation", header="blinker_env.h")]
+    extern let sensedRotation: int32
+    @[COutput (binding="actuator_state.wheel_pos", header="blinker_env.h")]
+    extern var wheelPos: int32
+    repeat
+        rotation = sensedRotation
+        wheelPos = wheelPos + rotation
+        await true
+    end
+end 
+
 // Top Level
 
 @[EntryPoint]
-activity main(blinkerLeverMove: int32, warningPushed: bool, rotation: int32)
-             (leftBlinker: bool, rightBlinker: bool, blinkerLeverPos: int32)
-    var movedBlinkerLeverPos: int32
-    var localBlinkerLeverPos = blinkerLeverPos
-    
-    cobegin
-        run moveBlinkerLever(blinkerLeverMove, prev localBlinkerLeverPos)(movedBlinkerLeverPos)
+singleton activity main()
+    @[CInput (binding="sensor_input.blinker_warning_pushed", header="blinker_env.h")]
+    extern let warningPushed: bool         
+        
+    @[COutput (binding="actuator_state.blinker_lever_pos", header="blinker_env.h")]
+    extern var blinkerLeverPos: int32
+
+    var rotation: int32
+    cobegin     
+        run monitorBlinkerLever(rotation)(blinkerLeverPos)
     with
-        run updateBlinkerLeverFromRotation(rotation, movedBlinkerLeverPos)(localBlinkerLeverPos)
+        run monitorWheelPos()(rotation)
     with
-        repeat
-            blinkerLeverPos = localBlinkerLeverPos
-            await true
-        end
-    with
-        repeat
-            when warningPushed abort
-                cobegin
-                    run blinkWhileInPos(blinkerLeverPos, BLINKER_LEVER_POS_UP)(rightBlinker)
-                with
-                    run blinkWhileInPos(blinkerLeverPos, BLINKER_LEVER_POS_DOWN)(leftBlinker)
-                end
-            end
-            when warningPushed abort
-                cobegin
-                    run blink(BLINKING_RATIO_WARNING)(leftBlinker)
-                with
-                    run blink(BLINKING_RATIO_WARNING)(rightBlinker)
-                end
-            end
-            leftBlinker = false
-            rightBlinker = false
-        end
+        run controlBlinkers(warningPushed, blinkerLeverPos) 
     end
 end
