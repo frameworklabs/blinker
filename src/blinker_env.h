@@ -23,6 +23,12 @@ typedef struct {
     int wheel_pos;
 } blinker_env_actuator_state_t;
 
+typedef struct {
+    int blinker_lever_move;
+    int blinker_warning_pushed;
+    int rotation;  
+} blinker_env_input_t;
+
 typedef enum {
     blinker_env_sensor_state_nothing,
     blinker_env_sensor_state_quit,
@@ -44,5 +50,11 @@ void blinker_env_destroy(blinker_env_h self);
 void blinker_env_actuate(blinker_env_h self, blinker_env_actuator_state_t *state);
 
 blinker_env_sensor_state_t blinker_env_sense(blinker_env_h self);
+void blinker_env_sense_all(blinker_env_h self, blinker_env_input_t *inputs);
+
+/* Globals */
+extern blinker_env_actuator_state_t actuator_state;
+extern blinker_env_input_t sensor_input;
+
 
 #endif /* BLINKER_ENV_H */
