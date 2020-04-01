@@ -7,6 +7,9 @@
 #include <assert.h>
 #include <curses.h>
 
+const int COLOR_IDX_YELLOW = 1;
+const int COLOR_IDX_RED = 2;
+
 struct blinker_env_s {
     WINDOW *win;
 };
@@ -32,8 +35,9 @@ blinker_env_h blinker_env_make()
     nodelay(env->win, true);
 
     start_color();
-    init_pair(1, COLOR_BLACK, COLOR_YELLOW);
-    
+    init_pair(COLOR_IDX_YELLOW, COLOR_BLACK, COLOR_YELLOW);
+    init_pair(COLOR_IDX_RED, COLOR_BLACK, COLOR_RED);
+
     return env;
 }
 
@@ -48,13 +52,13 @@ void blinker_env_destroy(blinker_env_h self)
 
 /* Main API */
 
-static void fill(int col, int row, int numCols, int numRows)
+static void fill(int col, int row, int numCols, int numRows, int color)
 {
-    attron(COLOR_PAIR(1));
+    attron(COLOR_PAIR(color));
     for (int j = 0; j < numRows; ++j) {
         mvhline(row + j, col, ' ', numCols);
     }
-    attroff(COLOR_PAIR(1));
+    attroff(COLOR_PAIR(color));
 }
 
 void blinker_env_actuate(blinker_env_h self, blinker_env_actuator_state_t *state)
@@ -72,10 +76,10 @@ void blinker_env_actuate(blinker_env_h self, blinker_env_actuator_state_t *state
     
     /* Draw blinker lights. */
     if (state->blinker_left_on) {
-        fill(0, 0, halveCols - 1, halveRows);
+        fill(0, 0, halveCols - 1, halveRows, COLOR_IDX_YELLOW);
     }
     if (state->blinker_right_on) {
-        fill(halveCols + 1, 0, halveCols - 1, halveRows);
+        fill(halveCols + 1, 0, halveCols - 1, halveRows, COLOR_IDX_YELLOW);
     }
 
     /* Draw lever. */
@@ -93,8 +97,19 @@ void blinker_env_actuate(blinker_env_h self, blinker_env_actuator_state_t *state
             break;
     }
 
+    /* Draw warning indicator. */
+    if (state->warning_indicator_on) {
+        attron(COLOR_PAIR(COLOR_IDX_RED));
+        int row = halveRows + 1;
+        int col = halveCols + halveCols / 2;
+        for (int i = 0; i < 6; ++i) {
+            mvhline(row + i, col - i, ' ', i * 2);
+        }
+        attroff(COLOR_PAIR(COLOR_IDX_RED));
+    }
+
     /* Draw wheel. */
-    mvaddch(halveRows + 8, halveCols + state->wheel_pos, 'O');
+    mvaddch(halveRows + 8, halveCols - state->wheel_pos, 'O');
     
     /* Draw help. */
     mvaddstr(rows - 4, 0, "Move blinker lever up or down by arrow keys");
@@ -104,6 +119,13 @@ void blinker_env_actuate(blinker_env_h self, blinker_env_actuator_state_t *state
 
     /* Display all. */
     refresh();
+}
+
+static void drainInput()
+{
+    while (getch() != ERR) {
+        ;
+    }
 }
 
 blinker_env_sensor_state_t blinker_env_sense(blinker_env_h self)
@@ -124,13 +146,14 @@ blinker_env_sensor_state_t blinker_env_sense(blinker_env_h self)
             return blinker_env_sensor_state_blinker_lever_down;
             
         case KEY_LEFT:
+            drainInput();
             return blinker_env_sensor_state_rotate_counter_clock;
             
         case KEY_RIGHT:
+            drainInput();
             return blinker_env_sensor_state_rotate_clock;
             
         default:
             return blinker_env_sensor_state_nothing;
     }
 }
-

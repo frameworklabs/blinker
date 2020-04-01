@@ -33,6 +33,7 @@ int main(int argc, const char * argv[])
     // blinker_env_actuator_state_t actuator_state;
     actuator_state.blinker_left_on = 0;
     actuator_state.blinker_right_on = 0;
+    actuator_state.warning_indicator_on = 0;
     actuator_state.blinker_lever_pos = blinker_env_lever_pos_center;
     actuator_state.wheel_pos = 0;
 
@@ -64,10 +65,10 @@ int main(int argc, const char * argv[])
         
         sensor_input.rotation = 0;
         if (sensor_state == blinker_env_sensor_state_rotate_counter_clock) {
-            sensor_input.rotation = -rotation_increment;
+            sensor_input.rotation = rotation_increment;
         }
         else if (sensor_state == blinker_env_sensor_state_rotate_clock) {
-            sensor_input.rotation = rotation_increment;
+            sensor_input.rotation = -rotation_increment;
         }
 
         /* Run control reaction. */
