@@ -85,10 +85,10 @@ activity updateBlinkerLeverFromRotation(rotation: int32, movedBlinkerLeverPos: i
         if movedBlinkerLeverPos != BLINKER_LEVER_POS_CENTER then
             updateRotationSum(rotation)(rotationSum)
 
-            if rotationSum <= -ROTATION_THRESHOLD and movedBlinkerLeverPos == BLINKER_LEVER_POS_UP then
+            if rotationSum >= ROTATION_THRESHOLD and movedBlinkerLeverPos == BLINKER_LEVER_POS_UP then
                 blinkerLeverPos = BLINKER_LEVER_POS_CENTER
                 rotationSum = 0
-            elseif rotationSum >= ROTATION_THRESHOLD and movedBlinkerLeverPos == BLINKER_LEVER_POS_DOWN then
+            elseif rotationSum <= -ROTATION_THRESHOLD and movedBlinkerLeverPos == BLINKER_LEVER_POS_DOWN then
                 blinkerLeverPos = BLINKER_LEVER_POS_CENTER
                 rotationSum = 0
             else
@@ -150,6 +150,8 @@ singleton activity controlBlinkers(warningPushed: bool, blinkerLeverPos: int32)
     extern var leftBlinker: bool         
     @[COutput (binding="actuator_state.blinker_right_on", header="blinker_env.h")]
     extern var rightBlinker: bool         
+    @[COutput (binding="actuator_state.warning_indicator_on", header="blinker_env.h")]
+    extern var warningIndicator: bool         
     
     repeat
         when warningPushed abort
@@ -161,9 +163,13 @@ singleton activity controlBlinkers(warningPushed: bool, blinkerLeverPos: int32)
         end
         when warningPushed abort
             cobegin
-                run blink(BLINKING_RATIO_WARNING)(leftBlinker)
+                run blink(BLINKING_RATIO_WARNING)(warningIndicator)
             with
-                run blink(BLINKING_RATIO_WARNING)(rightBlinker)
+                repeat
+                    leftBlinker = warningIndicator
+                    rightBlinker = warningIndicator
+                    await true
+                end
             end
         end
         leftBlinker = false
