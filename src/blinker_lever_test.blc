@@ -197,5 +197,6 @@ end
 singleton activity main()
     @[COutput (binding="actuator_state.blinker_lever_pos", header="blinker_env.h")]
     extern var blinkerLeverPos: int32
-    run monitorBlinkerLever(0)(blinkerLeverPos)
+    const NO_ROTATION = 0 : int32 // expression with type annotation, left-hand side type deduction
+    run monitorBlinkerLever(NO_ROTATION)(blinkerLeverPos)
 end
