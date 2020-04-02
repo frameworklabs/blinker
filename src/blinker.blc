@@ -172,6 +172,7 @@ singleton activity controlBlinkers(warningPushed: bool, blinkerLeverPos: int32)
                 end
             end
         end
+        warningIndicator = false
         leftBlinker = false
         rightBlinker = false
     end
