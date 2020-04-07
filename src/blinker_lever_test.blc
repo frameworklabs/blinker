@@ -172,7 +172,6 @@ singleton activity controlBlinkers(warningPushed: bool, blinkerLeverPos: int32)
                 end
             end
         end
-        warningIndicator = false
         leftBlinker = false
         rightBlinker = false
     end
@@ -196,18 +195,8 @@ end
 
 @[EntryPoint]
 singleton activity main()
-    @[CInput (binding="sensor_input.blinker_warning_pushed", header="blinker_env.h")]
-    extern let warningPushed: bool         
-        
     @[COutput (binding="actuator_state.blinker_lever_pos", header="blinker_env.h")]
     extern var blinkerLeverPos: int32
-
-    var rotation: int32
-    cobegin     
-        run monitorBlinkerLever(rotation)(blinkerLeverPos)
-    with
-        run monitorWheelPos()(rotation)
-    with
-        run controlBlinkers(warningPushed, blinkerLeverPos) 
-    end
+    const NO_ROTATION = 0 : int32 // expression with type annotation, left-hand side type deduction
+    run monitorBlinkerLever(NO_ROTATION)(blinkerLeverPos)
 end
