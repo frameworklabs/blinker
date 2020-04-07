@@ -11,12 +11,12 @@ set -e
 [ -d build ] || mkdir build
 
 cd build
-blechc -sp ../src ../src/blinker.blc
+blechc -sp ../src ../src/blinker_lever_test.blc
 cd ..
 
 cd src
-cc -I .  -I ../build main.c blinker_env.c -lcurses -o ../build/blinker
+cc -I .  -I ../build main_test.c blinker_env.c -lcurses -o ../build/blinker_lever_test
 cd ..
 
 # RUN
-build/blinker
+build/blinker_lever_test
