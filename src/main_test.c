@@ -14,11 +14,6 @@
 static const blc_int32 rotation_increment = 1; /* 1 degree */
 static const useconds_t update_frequency = 100000; /* 10 Hz */
 
-/* Globals */          
-
-blinker_env_actuator_state_t actuator_state;
-blinker_env_input_t sensor_input;
-
 /* Main */
 
 int main(int argc, const char * argv[])

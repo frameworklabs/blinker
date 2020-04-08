@@ -14,11 +14,6 @@
 static const blc_int32 rotation_increment = 1; /* 1 degree */
 static const useconds_t update_frequency = 100000; /* 10 Hz */
 
-/* Globals */          
-
-blinker_env_actuator_state_t actuator_state;
-blinker_env_input_t sensor_input;
-
 /* Main */
 
 int main(int argc, const char * argv[])
@@ -72,22 +67,9 @@ int main(int argc, const char * argv[])
         }
 
         /* Run control reaction. */
-        // actuator_state.wheel_pos += sensor_input.rotation;
-        
-        // blc_int32 blinker_lever_pos = actuator_state.blinker_lever_pos;
-        
-        blc_blech_blinker_tick(// blinker_lever_move,
-                               // blinker_warning_pushed,
-                               // rotation,
-                               //&actuator_state.blinker_left_on,
-                               //&actuator_state.blinker_right_on,ww
-                               // &blinker_lever_pos
-                              );
+        blc_blech_blinker_tick();
 
         /* Act on environment. */
-        // actuator_state.blinker_lever_pos = blinker_lever_pos;
-        // actuator_state.wheel_pos += rotation;
-        
         blinker_env_actuate(env, &actuator_state);
 
         /* Wait for next tick.*/

@@ -2,11 +2,6 @@
 
 set -e
 
-# CONFIGURATION
-
-# Edit this if needed
-# BLECH_INCLUDE_PATH=$(dirname `which blechc`)/../../../../../include
-
 # BUILD
 [ -d build ] || mkdir build
 

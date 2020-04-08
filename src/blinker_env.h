@@ -40,22 +40,20 @@ typedef enum {
     blinker_env_sensor_state_rotate_clock
 } blinker_env_sensor_state_t;
 
+/* Globals */
+
+extern blinker_env_actuator_state_t actuator_state;
+extern blinker_env_input_t sensor_input;
+
 /* Construction */
 
 blinker_env_h blinker_env_make(void);
-
 void blinker_env_destroy(blinker_env_h self);
 
 /* Main API */
 
 void blinker_env_actuate(blinker_env_h self, blinker_env_actuator_state_t *state);
-
 blinker_env_sensor_state_t blinker_env_sense(blinker_env_h self);
-void blinker_env_sense_all(blinker_env_h self, blinker_env_input_t *inputs);
-
-/* Globals */
-extern blinker_env_actuator_state_t actuator_state;
-extern blinker_env_input_t sensor_input;
 
 
 #endif /* BLINKER_ENV_H */

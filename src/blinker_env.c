@@ -7,12 +7,23 @@
 #include <assert.h>
 #include <curses.h>
 
-const int COLOR_IDX_YELLOW = 1;
-const int COLOR_IDX_RED = 2;
+/* Constants */
+
+static const int COLOR_IDX_YELLOW = 1;
+static const int COLOR_IDX_RED = 2;
+
+/* Globals */
+
+blinker_env_actuator_state_t actuator_state;
+blinker_env_input_t sensor_input;
+
+/* Internal Types */
 
 struct blinker_env_s {
     WINDOW *win;
 };
+
+/* Construction */
 
 blinker_env_h blinker_env_make()
 {
