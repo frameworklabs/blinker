@@ -24,8 +24,8 @@ jobs:
 
     # Runs a single command using the runners shell
     - name: build app
-      run: make build_app
+      run: echo "disabled: make build_app"
 
     # Runs a single command using the runners shell
     - name: build test
-      run: make build_test
+      run: echo "disabled: make build_test"
