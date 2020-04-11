@@ -3,9 +3,8 @@
 
 /* Includes */
 
-#include "blinker_env.h"
-#include "blech/blinker.c"
-#include "blech.h"
+#include "env/blinker_env.h"
+#include "blech/test/control/blinker_lever_test.h"
 #include <stdio.h>
 #include <unistd.h>
 
@@ -33,7 +32,7 @@ int main(int argc, const char * argv[])
     actuator_state.wheel_pos = 0;
 
     /* Initialize blech. */
-    blc_blech_blinker_init();
+    blc_blech_test_control_blinker_lever_test_init();
      
     /* Sense, control, act loop */
     while (1) {
@@ -67,7 +66,7 @@ int main(int argc, const char * argv[])
         }
 
         /* Run control reaction. */
-        blc_blech_blinker_tick();
+        blc_blech_test_control_blinker_lever_test_tick();
 
         /* Act on environment. */
         blinker_env_actuate(env, &actuator_state);

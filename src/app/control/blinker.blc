@@ -103,7 +103,7 @@ activity updateBlinkerLeverFromRotation(rotation: int32, movedBlinkerLeverPos: i
 end
 
 singleton activity monitorBlinkerLever(rotation: int32)(blinkerLeverPos: int32)
-    @[CInput (binding="sensor_input.blinker_lever_move", header="blinker_env.h")]
+    @[CInput (binding="sensor_input.blinker_lever_move", header="env/blinker_env.h")]
     extern let blinkerLeverMove: int32         
     
     var movedBlinkerLeverPos: int32
@@ -143,11 +143,11 @@ activity blinkWhileInPos(pos: int32, targetPos: int32)(blinker: bool)
 end
 
 singleton activity controlBlinkers(warningPushed: bool, blinkerLeverPos: int32)
-    @[COutput (binding="actuator_state.blinker_left_on", header="blinker_env.h")]
+    @[COutput (binding="actuator_state.blinker_left_on", header="env/blinker_env.h")]
     extern var leftBlinker: bool         
-    @[COutput (binding="actuator_state.blinker_right_on", header="blinker_env.h")]
+    @[COutput (binding="actuator_state.blinker_right_on", header="env/blinker_env.h")]
     extern var rightBlinker: bool         
-    @[COutput (binding="actuator_state.warning_indicator_on", header="blinker_env.h")]
+    @[COutput (binding="actuator_state.warning_indicator_on", header="env/blinker_env.h")]
     extern var warningIndicator: bool         
     
     repeat
@@ -178,9 +178,9 @@ end
 // Rotation monitoring
 
 singleton activity monitorWheelPos()(rotation: int32)
-    @[CInput (binding="sensor_input.rotation", header="blinker_env.h")]
+    @[CInput (binding="sensor_input.rotation", header="env/blinker_env.h")]
     extern let sensedRotation: int32
-    @[COutput (binding="actuator_state.wheel_pos", header="blinker_env.h")]
+    @[COutput (binding="actuator_state.wheel_pos", header="env/blinker_env.h")]
     extern var wheelPos: int32
 
     repeat
@@ -194,10 +194,18 @@ end
 
 @[EntryPoint]
 singleton activity main()
-    @[COutput (binding="actuator_state.blinker_lever_pos", header="blinker_env.h")]
+    @[CInput (binding="sensor_input.blinker_warning_pushed", header="env/blinker_env.h")]
+    extern let warningPushed: bool
+    @[COutput (binding="actuator_state.blinker_lever_pos", header="env/blinker_env.h")]
     extern var blinkerLeverPos: int32
 
-    const NO_ROTATION = 0 : int32 // expression with type annotation, left-hand side type deduction
+    var rotation: int32
 
-    run monitorBlinkerLever(NO_ROTATION)(blinkerLeverPos)
+    cobegin     
+        run monitorBlinkerLever(rotation)(blinkerLeverPos)
+    with
+        run monitorWheelPos()(rotation)
+    with
+        run controlBlinkers(warningPushed, blinkerLeverPos) 
+    end
 end
