@@ -77,22 +77,27 @@ typedef BLC_PC_T blc_pc_t;
  * Macro for size-correct number literals
  */
 
-// #define BLC_I8(i) (blc_int8)i
-// #define BLC_I16(i) (blc_int16)i
-// #define BLC_I32(i) (blc_int32)i
-// #define BLC_I64(i) (blc_int64)i
+#define BLC_I8(i) (blc_int8)i
+#define BLC_I16(i) (blc_int16)i
+#define BLC_I32(i) (blc_int32)i
+#define BLC_I64(i) (blc_int64)i
 
-// #define BLC_N8(n) (blc_nat8)n
-// #define BLC_N16(n) (blc_nat16)n
-// #define BLC_N32(n) (blc_nat32)n
-// #define BLC_N64(n) (blc_nat64)n
+#define BLC_N8(n) (blc_nat8)n
+#define BLC_N16(n) (blc_nat16)n
+#define BLC_N32(n) (blc_nat32)n
+#define BLC_N64(n) (blc_nat64)n
 
-// #define BLC_B8(b) (blc_bits8)b
-// #define BLC_B16(b) (blc_bits16)b
-// #define BLC_B32(b) (blc_bits32)b
-// #define BLC_B64(b) (blc_bits64)b
+#define BLC_B8(b) (blc_bits8)b
+#define BLC_B16(b) (blc_bits16)b
+#define BLC_B32(b) (blc_bits32)b
+#define BLC_B64(b) (blc_bits64)b
 
-// #define BLC_F32(f) (blc_float32)f
-// #define BLC_F64(f) (blc_float64)f
+#define BLC_F32(f) (blc_float32)f
+#define BLC_F64(f) (blc_float64)f
+
+/*
+ * Using a void cast, explicitly mark a variable as unused
+ */
+#define BLC_UNUSED(v) ((void) v)
 
 #endif
